@@ -1,0 +1,92 @@
+# --- Visual Studio / .NET ---
+## Pastas de ambiente do Visual Studio
+.vs/
+.idea/
+
+## Ficheiros de utilizador e temporários
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.DotSettings.user
+
+## Pastas de build
+[Bb]in/
+[Oo]bj/
+out/
+artifacts/
+
+## Pacotes NuGet
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+## ReSharper
+_ReSharper*/
+*.ReSharperCache
+
+## MonoDevelop
+*.userprefs
+
+# --- ASP.NET / .NET Core specific ---
+## Ficheiros gerados e caches
+project.lock.json
+*.db
+
+## Secretos / certificados (não os commites)
+secrets.json
+appsettings.*.Local.json
+appsettings.Secrets.json
+secrets/
+*.pfx
+*.cer
+*.pem
+*.key
+
+## EF Migrations designer temporário (opcional)
+**/Migrations/*.Designer.cs
+
+# Nota: normalmente o Properties/launchSettings.json pode ser committed porque contém perfis de execução. 
+# Se preferires manter configurações locais privadas, descomenta a linha seguinte:
+# Properties/launchSettings.json
+
+# --- Visual Studio Code ---
+.vscode/
+
+# --- IIS Express ---
+/IISExpress/
+
+# --- Logs ---
+*.log
+logs/
+npm-debug.log
+yarn-error.log
+
+# --- Node / front-end (se houver um cliente React/Angular no mesmo repo) ---
+node_modules/
+dist/
+build/
+.cache/
+.next/
+.tmp/
+
+# --- Environment files ---
+.env
+.env.*
+*.local
+
+# --- Docker ---
+docker-compose.override.yml
+docker-compose.*.yml
+**/docker-compose.override.yml
+
+# --- OS / misc ---
+Thumbs.db
+Desktop.ini
+*.DS_Store
+
+# --- IDE / Editor swap / lock files ---
+*~
+*.swp
+*.lock
