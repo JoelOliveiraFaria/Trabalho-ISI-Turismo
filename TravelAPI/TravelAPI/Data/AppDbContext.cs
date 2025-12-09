@@ -9,5 +9,6 @@ namespace TravelAPI.Data
 
         public DbSet<Destination> Destinations { get; set; }
         public DbSet<Packages> Packages { get; set; }
+        public DbSet<Clients> Clients { get; set; }
     }
 }

@@ -5,11 +5,11 @@ using TravelAPI.Models;
 
 namespace TravelAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("travel/Destination")]
     [ApiController]
     public class DestinationsController : ControllerBase
     {
-     private readonly AppDbContext _context;
+        private readonly AppDbContext _context;
 
         public DestinationsController(AppDbContext context)
         {
