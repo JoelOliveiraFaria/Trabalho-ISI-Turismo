@@ -12,7 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Ensure the Microsoft.EntityFrameworkCore.SqlServer package is installed  
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<TravelPlannerContext>(options =>
  options.UseSqlServer(builder.Configuration.GetConnectionString("TravelDatabase"))
 );
 

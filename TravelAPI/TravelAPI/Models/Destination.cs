@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TravelAPI.Models
 {
@@ -9,18 +8,12 @@ namespace TravelAPI.Models
         public int Id { get; set; }
 
         [Required]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [Required]
-        public string Country { get; set; }
+        public string? Country { get; set; }
+        public string? Description { get; set; }
 
-        public string Description { get; set; }
-
-        public string ImageURL { get; set; }
-
-        public string CountryCode { get; set; }
-
-        [NotMapped]
-        public string WeatherInfo { get; set; }
+        public List<Trip> Trips { get; set; }
     }
 }
