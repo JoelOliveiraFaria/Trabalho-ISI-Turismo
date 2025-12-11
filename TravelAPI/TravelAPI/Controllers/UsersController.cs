@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using TravelAPI.DTOs;
 using TravelAPI.Models;
 using TravelAPI.DTOs;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace TravelAPI.Controllers
 {
@@ -14,10 +17,36 @@ namespace TravelAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly TravelPlannerContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UsersController(TravelPlannerContext context)
+        public UsersController(TravelPlannerContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+
+        private string CreateToken(User user)
+        {
+           List<Claim> claims = new List<Claim>
+           {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username!),
+                new Claim(ClaimTypes.Email, user.Email!)
+           };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                _configuration.GetSection("AppSettings:Token").Value!));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
 
         //Registrar novo usuário
@@ -60,19 +89,15 @@ namespace TravelAPI.Controllers
             if (user == null) return Unauthorized();
 
             var passwordHasher = new PasswordHasher<User>();
-            var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDTO.Password);
+            var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDTO.Password!);
 
             if (result == PasswordVerificationResult.Failed)
             {
                 return Unauthorized();
             }
 
-            return Ok(new UserDTO
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email
-            });
+            string token = CreateToken(user);
+            return Ok(token);
         }
 
         //// 3. OBTER TODOS (Apenas para teste/Admin)
