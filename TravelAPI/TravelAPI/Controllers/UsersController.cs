@@ -84,7 +84,7 @@ namespace TravelAPI.Controllers
         public async Task<ActionResult<UserDTO>> Login(UserLoginDTO loginDTO)
         {
             var user = await _context.Users
-                .SingleOrDefaultAsync(u => u.Username == loginDTO.Username);
+                .FirstOrDefaultAsync(u => u.Username == loginDTO.Username);
 
             if (user == null) return Unauthorized();
 
