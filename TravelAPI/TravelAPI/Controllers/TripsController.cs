@@ -129,6 +129,7 @@ namespace TravelAPI.Controllers
                 EndDate = trip.EndDate,
                 Budget = trip.Budget,
                 Notes = trip.Notes,
+                WeatherForecast = trip.WeatherForecast,
                 Destination = new DestinationDto
                 {
                     Id = destination.Id,
