@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TravelAPI.Data;
 using TravelAPI.DTOs;
+using TravelAPI.Interfaces;
 using TravelAPI.Models;
 
 namespace TravelAPI.Controllers
@@ -14,10 +15,12 @@ namespace TravelAPI.Controllers
     public class TripsController : ControllerBase
     {
         private readonly TravelPlannerContext _context;
+        private readonly IWeatherService _weatherService;
 
-        public TripsController(TravelPlannerContext context)
+        public TripsController(TravelPlannerContext context, IWeatherService weatherService)
         {
             _context = context;
+            _weatherService = weatherService;
         }
 
         // 1. OBTER TODOS AS VIAGENS
@@ -98,6 +101,8 @@ namespace TravelAPI.Controllers
 
             int userId = int.Parse(userIdClaim.Value);
 
+            string forecast = await _weatherService.GetWeatherAsync(destination.City!);
+
             // Validar se user existe (opcional, mas bom para evitar erro de FK)
             if (!await _context.Users.AnyAsync(u => u.Id == userId))
             {
@@ -129,7 +134,7 @@ namespace TravelAPI.Controllers
                 EndDate = trip.EndDate,
                 Budget = trip.Budget,
                 Notes = trip.Notes,
-                WeatherForecast = trip.WeatherForecast,
+                WeatherForecast = forecast,
                 Destination = new DestinationDto
                 {
                     Id = destination.Id,
