@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddHttpClient<TravelAPI.Interfaces.IWeatherService, TravelAPI.Services.OpenWeatherService>();
+
 // --- NOVA CONFIGURAÇÃO (NSwag) ---
 // Substitui o AddSwaggerGen e evita o erro de versão
 builder.Services.AddOpenApiDocument(config =>
