@@ -16,11 +16,13 @@ namespace TravelAPI.Controllers
     {
         private readonly TravelPlannerContext _context;
         private readonly IWeatherService _weatherService;
+        private readonly IInsuranceService _insuranceService;
 
-        public TripsController(TravelPlannerContext context, IWeatherService weatherService)
+        public TripsController(TravelPlannerContext context, IWeatherService weatherService, IInsuranceService insuranceService)
         {
             _context = context;
             _weatherService = weatherService;
+            _insuranceService = insuranceService;
         }
 
         // 1. OBTER TODOS AS VIAGENS
@@ -116,6 +118,8 @@ namespace TravelAPI.Controllers
 
             string forecast = await _weatherService.GetWeatherAsync(destination.City!);
 
+            decimal insurance = await _insuranceService.CalculateInsuranceAsync(createDto.Budget);
+
             if (!await _context.Users.AnyAsync(u => u.Id == userId))
             {
                 return BadRequest("Utilizador (ID 1) não encontrado. Crie um user primeiro.");
@@ -128,10 +132,8 @@ namespace TravelAPI.Controllers
                 StartDate = createDto.StartDate,
                 EndDate = createDto.EndDate,
                 Budget = createDto.Budget,
-                Notes = createDto.Notes
-
-                // --- FUTURO: É AQUI QUE CHAMAREMOS O SOAP E A API DE TEMPO ---
-                // trip.InsuranceCost = await _soapService.Calculate(...);
+                Notes = createDto.Notes,
+                InsuranceCost = insurance
             };
 
             trip.WeatherForecast = forecast;
@@ -147,6 +149,7 @@ namespace TravelAPI.Controllers
                 Budget = trip.Budget,
                 Notes = trip.Notes,
                 WeatherForecast = forecast,
+                InsuranceCost = trip.InsuranceCost,
                 Destination = new DestinationDto
                 {
                     Id = destination.Id,
@@ -163,8 +166,14 @@ namespace TravelAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrip(int id)
         {
-            var trip = await _context.Trips.FindAsync(id);
-            if (trip == null) return NotFound();
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
+
+            var trip = await _context.Trips
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            if (trip == null) return NotFound("Viagem não encontrada ou sem permissão.");
 
             _context.Trips.Remove(trip);
             await _context.SaveChangesAsync();

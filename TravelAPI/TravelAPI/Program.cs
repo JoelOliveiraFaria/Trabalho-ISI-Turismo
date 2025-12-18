@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpClient<TravelAPI.Interfaces.IWeatherService, TravelAPI.Services.OpenWeatherService>();
+builder.Services.AddScoped<TravelAPI.Interfaces.IInsuranceService, TravelAPI.Services.SoapInsuranceService>();
 
 // --- NOVA CONFIGURAÇÃO (NSwag) ---
 // Substitui o AddSwaggerGen e evita o erro de versão

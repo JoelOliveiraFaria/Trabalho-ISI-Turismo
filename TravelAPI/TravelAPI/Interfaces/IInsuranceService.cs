@@ -1,6 +1,7 @@
 ﻿namespace TravelAPI.Interfaces
 {
-    public class IInsuranceService
+    public interface IInsuranceService
     {
+        Task<decimal> CalculateInsuranceAsync(decimal budget);
     }
 }
