@@ -27,7 +27,13 @@ namespace TravelAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TripDto>>> GetTrips()
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+
+            int userId = int.Parse(userIdClaim.Value);
+
             var trips = await _context.Trips
+                .Where(t => t.UserId == userId) 
                 .Include(t => t.Destination)
                 .Select(t => new TripDto
                 {
@@ -35,10 +41,9 @@ namespace TravelAPI.Controllers
                     StartDate = t.StartDate,
                     EndDate = t.EndDate,
                     Budget = t.Budget,
-                    Notes = t.Notes,
-
-                    InsuranceCost = t.InsuranceCost,
+                    Notes = t.Notes!,
                     WeatherForecast = t.WeatherForecast,
+                    InsuranceCost = t.InsuranceCost,
 
                     Destination = new DestinationDto
                     {
@@ -49,7 +54,9 @@ namespace TravelAPI.Controllers
                     }
                 })
                 .ToListAsync();
+
             return Ok(trips);
+
         }
 
         // 2. OBTER UMA VIAGEM POR ID
@@ -57,11 +64,15 @@ namespace TravelAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TripDto>> GetTrip(int id)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
+
             var trip = await _context.Trips
                 .Include(t => t.Destination)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId); 
 
-            if (trip == null) return NotFound();
+            if (trip == null) return NotFound("Viagem não encontrada ou sem permissão de acesso.");
 
             var tripDto = new TripDto
             {
@@ -71,7 +82,9 @@ namespace TravelAPI.Controllers
                 Budget = trip.Budget,
                 Notes = trip.Notes!,
                 InsuranceCost = trip.InsuranceCost,
+
                 WeatherForecast = trip.WeatherForecast,
+
                 Destination = new DestinationDto
                 {
                     Id = trip.Destination.Id,
@@ -103,13 +116,11 @@ namespace TravelAPI.Controllers
 
             string forecast = await _weatherService.GetWeatherAsync(destination.City!);
 
-            // Validar se user existe (opcional, mas bom para evitar erro de FK)
             if (!await _context.Users.AnyAsync(u => u.Id == userId))
             {
                 return BadRequest("Utilizador (ID 1) não encontrado. Crie um user primeiro.");
             }
 
-            // Mapear DTO -> Model
             var trip = new Trip
             {
                 DestinationId = createDto.DestinationId,
@@ -121,8 +132,9 @@ namespace TravelAPI.Controllers
 
                 // --- FUTURO: É AQUI QUE CHAMAREMOS O SOAP E A API DE TEMPO ---
                 // trip.InsuranceCost = await _soapService.Calculate(...);
-                // trip.WeatherForecast = await _weatherService.GetForecast(...);
             };
+
+            trip.WeatherForecast = forecast;
 
             _context.Trips.Add(trip);
             await _context.SaveChangesAsync();
