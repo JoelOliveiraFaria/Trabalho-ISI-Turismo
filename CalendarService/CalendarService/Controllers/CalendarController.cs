@@ -4,6 +4,8 @@ using CalendarService.Models;
 
 namespace CalendarService.Controllers
 {
+    [Route("api/calendar")]
+    [ApiController]
     public class CalendarController : ControllerBase
     {
         private readonly GoogleCalendarService _googleService;
