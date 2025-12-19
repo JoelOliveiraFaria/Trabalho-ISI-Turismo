@@ -14,6 +14,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient<TravelAPI.Interfaces.IWeatherService, TravelAPI.Services.OpenWeatherService>();
 builder.Services.AddScoped<TravelAPI.Interfaces.IInsuranceService, TravelAPI.Services.SoapInsuranceService>();
 
+builder.Services.AddHttpClient<TravelAPI.Interfaces.ICalendarService, TravelAPI.Services.RemoteCalendarService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7083/");
+});
+
+// 4. Serviço de Email (Remoto)
+builder.Services.AddHttpClient<TravelAPI.Interfaces.IEmailService, TravelAPI.Services.RemoteEmailService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7205/");
+});
+
 // --- NOVA CONFIGURAÇÃO (NSwag) ---
 // Substitui o AddSwaggerGen e evita o erro de versão
 builder.Services.AddOpenApiDocument(config =>

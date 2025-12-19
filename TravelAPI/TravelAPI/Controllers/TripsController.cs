@@ -11,23 +11,31 @@ namespace TravelAPI.Controllers
 {
     [Route("travel/trips")]
     [ApiController]
-    [Authorize] // Requer autenticação para aceder a este controlador
+    [Authorize]
     public class TripsController : ControllerBase
     {
         private readonly TravelPlannerContext _context;
         private readonly IWeatherService _weatherService;
         private readonly IInsuranceService _insuranceService;
         private readonly ICalendarService _calendarService;
+        private readonly IEmailService _emailService; 
 
-        public TripsController(TravelPlannerContext context, IWeatherService weatherService, IInsuranceService insuranceService, ICalendarService calendarService)
+        // Atualizar construtor para receber o EmailService
+        public TripsController(
+            TravelPlannerContext context,
+            IWeatherService weatherService,
+            IInsuranceService insuranceService,
+            ICalendarService calendarService,
+            IEmailService emailService) 
         {
             _context = context;
             _weatherService = weatherService;
             _insuranceService = insuranceService;
             _calendarService = calendarService;
+            _emailService = emailService;
         }
 
-        // 1. OBTER TODOS AS VIAGENS
+        // 1. OBTER TODAS AS VIAGENS
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TripDto>>> GetTrips()
         {
@@ -37,7 +45,7 @@ namespace TravelAPI.Controllers
             int userId = int.Parse(userIdClaim.Value);
 
             var trips = await _context.Trips
-                .Where(t => t.UserId == userId) 
+                .Where(t => t.UserId == userId)
                 .Include(t => t.Destination)
                 .Select(t => new TripDto
                 {
@@ -48,7 +56,6 @@ namespace TravelAPI.Controllers
                     Notes = t.Notes!,
                     WeatherForecast = t.WeatherForecast,
                     InsuranceCost = t.InsuranceCost,
-
                     Destination = new DestinationDto
                     {
                         Id = t.Destination.Id,
@@ -60,11 +67,9 @@ namespace TravelAPI.Controllers
                 .ToListAsync();
 
             return Ok(trips);
-
         }
 
         // 2. OBTER UMA VIAGEM POR ID
-        // GET: api/trips/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TripDto>> GetTrip(int id)
         {
@@ -74,7 +79,7 @@ namespace TravelAPI.Controllers
 
             var trip = await _context.Trips
                 .Include(t => t.Destination)
-                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId); 
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (trip == null) return NotFound("Viagem não encontrada ou sem permissão de acesso.");
 
@@ -86,9 +91,7 @@ namespace TravelAPI.Controllers
                 Budget = trip.Budget,
                 Notes = trip.Notes!,
                 InsuranceCost = trip.InsuranceCost,
-
                 WeatherForecast = trip.WeatherForecast,
-
                 Destination = new DestinationDto
                 {
                     Id = trip.Destination.Id,
@@ -101,11 +104,17 @@ namespace TravelAPI.Controllers
             return Ok(tripDto);
         }
 
-
+        // 3. CRIAR VIAGEM (COM EMAIL E VERIFICAÇÕES)
         [HttpPost]
-        public async Task<ActionResult<TripDto>> PostTrip(CreateTripDto createDto)
+        public async Task<IActionResult> PostTrip(CreateTripDto createDto)
         {
-            // Validar se o destino existe antes de criar
+            // Validação de Data
+            if (createDto.EndDate < createDto.StartDate)
+            {
+                return BadRequest("A data de fim deve ser posterior à data de início.");
+            }
+
+            // Validar se o destino existe
             var destination = await _context.Destinations.FindAsync(createDto.DestinationId);
             if (destination == null)
             {
@@ -113,21 +122,20 @@ namespace TravelAPI.Controllers
             }
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
             if (userIdClaim == null) return Unauthorized();
-
             int userId = int.Parse(userIdClaim.Value);
 
+            // 2. BUSCAR O UTILIZADOR COMPLETO (Precisamos do Email dele!)
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("Utilizador não encontrado.");
+            }
 
             // Serviços externos
             var conflicts = await _calendarService.CheckConflictsAsync(createDto.StartDate, createDto.EndDate);
             string forecast = await _weatherService.GetWeatherAsync(destination.City!);
             decimal insurance = await _insuranceService.CalculateInsuranceAsync(createDto.Budget);
-
-            if (!await _context.Users.AnyAsync(u => u.Id == userId))
-            {
-                return BadRequest("Utilizador (ID 1) não encontrado. Crie um user primeiro.");
-            }
 
             var trip = new Trip
             {
@@ -137,10 +145,9 @@ namespace TravelAPI.Controllers
                 EndDate = createDto.EndDate,
                 Budget = createDto.Budget,
                 Notes = createDto.Notes,
-                InsuranceCost = insurance
+                InsuranceCost = insurance,
+                WeatherForecast = forecast
             };
-
-            trip.WeatherForecast = forecast;
 
             _context.Trips.Add(trip);
             await _context.SaveChangesAsync();
@@ -162,11 +169,22 @@ namespace TravelAPI.Controllers
                 }
             };
 
-            if(conflicts.Any() && conflicts != null)
+            if (conflicts != null && conflicts.Any())
             {
+                string listaConflitos = string.Join(", ", conflicts);
+
+                string assunto = $"Conflito na Viagem para {destination.City}";
+                string corpo = $"Olá {user.Username},\n\n" +
+                               $"Criaste uma viagem para {destination.City} de {createDto.StartDate:dd/MM} a {createDto.EndDate:dd/MM}.\n" +
+                               $"No entanto, detetámos os seguintes conflitos na tua agenda:\n\n" +
+                               $"{listaConflitos}\n\n" +
+                               $"Verifica a tua disponibilidade!";
+
+                _ = _emailService.SendEmailAsync(user.Email!, assunto, corpo);
+
                 return Ok(new
                 {
-                    Message = "Viagem criada com sucesso, mas atenção aos conflitos na agenda!",
+                    Message = "Viagem criada com sucesso, mas atenção aos conflitos na agenda! Foi enviado um email de aviso.",
                     Warnings = conflicts,
                     TripData = tripResponse
                 });
@@ -176,7 +194,6 @@ namespace TravelAPI.Controllers
         }
 
         // 4. APAGAR VIAGEM
-        // DELETE: api/trips/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrip(int id)
         {
