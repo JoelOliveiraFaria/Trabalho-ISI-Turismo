@@ -17,12 +17,14 @@ namespace TravelAPI.Controllers
         private readonly TravelPlannerContext _context;
         private readonly IWeatherService _weatherService;
         private readonly IInsuranceService _insuranceService;
+        private readonly ICalendarService _calendarService;
 
-        public TripsController(TravelPlannerContext context, IWeatherService weatherService, IInsuranceService insuranceService)
+        public TripsController(TravelPlannerContext context, IWeatherService weatherService, IInsuranceService insuranceService, ICalendarService calendarService)
         {
             _context = context;
             _weatherService = weatherService;
             _insuranceService = insuranceService;
+            _calendarService = calendarService;
         }
 
         // 1. OBTER TODOS AS VIAGENS
@@ -116,8 +118,10 @@ namespace TravelAPI.Controllers
 
             int userId = int.Parse(userIdClaim.Value);
 
-            string forecast = await _weatherService.GetWeatherAsync(destination.City!);
 
+            // Serviços externos
+            var conflicts = await _calendarService.CheckConflictsAsync(createDto.StartDate, createDto.EndDate);
+            string forecast = await _weatherService.GetWeatherAsync(destination.City!);
             decimal insurance = await _insuranceService.CalculateInsuranceAsync(createDto.Budget);
 
             if (!await _context.Users.AnyAsync(u => u.Id == userId))
@@ -157,6 +161,16 @@ namespace TravelAPI.Controllers
                     Country = destination.Country
                 }
             };
+
+            if(conflicts.Any() && conflicts != null)
+            {
+                return Ok(new
+                {
+                    Message = "Viagem criada com sucesso, mas atenção aos conflitos na agenda!",
+                    Warnings = conflicts,
+                    TripData = tripResponse
+                });
+            }
 
             return CreatedAtAction(nameof(GetTrip), new { id = trip.Id }, tripResponse);
         }
