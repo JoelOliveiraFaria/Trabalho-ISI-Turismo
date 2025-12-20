@@ -18,6 +18,7 @@ function Register() {
 
         try {
             await api.post('travel/user/register', {
+                username : username,
                 email : email,
                 password : password,
             })
@@ -26,8 +27,16 @@ function Register() {
             navigate('/');
 
         } catch (err) {
-            setError('Falha no registro. Tente novamente.');
-            console.error(err);
+            if (err.response && err.response.data) {
+                const mensagemDoServidor = typeof err.response.data === 'string' 
+                        ? err.response.data 
+                        : JSON.stringify(err.response.data);
+
+                setError('Falha no registro. Tente novamente.');
+                console.error(mensagemDoServidor);
+            } else {
+                console.error('Erro inesperado:', err);
+            }
             return;
         }
     }
