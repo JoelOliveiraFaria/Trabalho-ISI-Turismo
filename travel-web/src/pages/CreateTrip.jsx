@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../pages/Navbar"; // Importar Navbar
 
 function CreateTrip() {
     const navigate = useNavigate();
@@ -68,8 +69,9 @@ function CreateTrip() {
     };
     
     return (
-        // 1. CORREÇÃO: "container" em vez de "constainer"
-        <div className="container mt-5">
+    <div className="min-vh-100 bg-light">
+        <Navbar />
+        <div className="container py-5">
             <div className="card shadow p-4 mx-auto" style={{maxWidth: '600px'}}>
                 <h2 className="mb-4 text-center">✈️ Marcar nova viagem</h2>
                 {error && <div className="alert alert-danger">{error}</div>}
@@ -159,6 +161,7 @@ function CreateTrip() {
                 </form>
             </div>
         </div>
+    </div>
     );
 }
 

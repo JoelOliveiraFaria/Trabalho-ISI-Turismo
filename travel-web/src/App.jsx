@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CreateTrip from "./pages/CreateTrip";
 import Trips from "./pages/Trips";
+import Home from "./pages/Home";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -13,18 +14,28 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rota Pública: Login */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+
+        <Route path="/login" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
 
         {/* Rota Protegida: Viagens (Vamos criar a seguir) */}
         <Route 
           path="/trips" 
-          element={ <Trips /> } 
+          element={ 
+          <PrivateRoute>
+            <Trips /> 
+          </PrivateRoute>
+        } 
         />
 
-        <Route path="/create-trip" element={<CreateTrip />} />
+        <Route path="/create-trip" element={   
+          <PrivateRoute> 
+            <CreateTrip />
+          </PrivateRoute>
+          } 
+        />
       </Routes>
     </BrowserRouter>
   );
