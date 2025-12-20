@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CreateTrip from "./pages/CreateTrip";
+import Trips from "./pages/Trips";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -20,8 +21,10 @@ function App() {
         {/* Rota Protegida: Viagens (Vamos criar a seguir) */}
         <Route 
           path="/trips" 
-          element={ <CreateTrip /> } 
+          element={ <Trips /> } 
         />
+
+        <Route path="/create-trip" element={<CreateTrip />} />
       </Routes>
     </BrowserRouter>
   );
