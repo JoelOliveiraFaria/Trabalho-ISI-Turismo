@@ -20,6 +20,7 @@ namespace TravelAPI.Models
         public string? Notes { get; set; }
 
         // --- CAMPOS PARA INTEGRAÇÃO (SOAP & REST Externo) ---
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? InsuranceCost { get; set; }
 
         public string? WeatherForecast { get; set; }
