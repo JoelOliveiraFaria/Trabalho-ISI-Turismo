@@ -62,7 +62,8 @@ jobs:
         with:
           app-name: 'travel-frontend-joel-app'
           slot-name: 'Production'
-          package: ./travel-web
+          package: .
 
           
+
 
