@@ -21,31 +21,25 @@ namespace TravelAPI.Services
 
             if (string.IsNullOrEmpty(baseUrl))
             {
-                Console.WriteLine("ERRO: EmailServiceUrl não está configurado no Azure/appsettings!");
+                Console.WriteLine("EmailServiceUrl não configurado.");
                 return;
             }
+            var cleanUrl = baseUrl.TrimEnd('/');
+            var url = $"{cleanUrl}/api/email/send";
 
-            var url = $"{baseUrl}/api/email/send";
-
-            var emailData = new
-            {
-                ToEmail = toEmail,
-                Subject = subject,
-                Body = body
-            };
+            var emailData = new { ToEmail = toEmail, Subject = subject, Body = body };
 
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(url, emailData);
-
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"O EmailService devolveu erro: {response.StatusCode}");
+                    Console.WriteLine($"Erro Email: {response.StatusCode} no URL: {url}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao contactar o microsserviço de Email: {ex.Message}");
+                Console.WriteLine($"Exceção Email: {ex.Message}");
             }
         }
     }
