@@ -79,6 +79,39 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<TravelAPI.Data.TravelPlannerContext>();
+        context.Database.EnsureCreated();
+
+        if (!context.Destinations.Any())
+        {
+            context.Destinations.AddRange(
+                new TravelAPI.Models.Destination { City = "Paris", Country = "France", Description = "A Cidade da Luz e do amor." },
+                new TravelAPI.Models.Destination { City = "London", Country = "United Kingdom", Description = "História, cultura e o Big Ben." },
+                new TravelAPI.Models.Destination { City = "New York", Country = "USA", Description = "A cidade que nunca dorme." },
+                new TravelAPI.Models.Destination { City = "Lisbon", Country = "Portugal", Description = "Sol, fado e pastéis de Belém." },
+                new TravelAPI.Models.Destination { City = "Tokyo", Country = "Japan", Description = "Onde a tradição encontra o futuro." },
+                new TravelAPI.Models.Destination { City = "Rome", Country = "Italy", Description = "O Coliseu, pizza e muita história." },
+                new TravelAPI.Models.Destination { City = "Sydney", Country = "Australia", Description = "Praias, surf e a Opera House." },
+                new TravelAPI.Models.Destination { City = "Rio de Janeiro", Country = "Brazil", Description = "Samba, Carnaval e o Cristo Redentor." },
+                new TravelAPI.Models.Destination { City = "Berlin", Country = "Germany", Description = "Arte urbana, história e vida noturna." },
+                new TravelAPI.Models.Destination { City = "Cape Town", Country = "South Africa", Description = "Montanhas, pinguins e natureza selvagem." }
+                );
+            context.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating the DB.");
+    }
+}
+
 // --- 2. PIPELINE ---
 
 //if (app.Environment.IsDevelopment())

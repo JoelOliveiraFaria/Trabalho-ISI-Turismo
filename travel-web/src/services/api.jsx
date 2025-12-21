@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const api_url = 'https://localhost:7139/';
+const api_url = 'https://travelapi-joel-final.azurewebsites.net';
 
 const api = axios.create({
     baseURL: api_url,
