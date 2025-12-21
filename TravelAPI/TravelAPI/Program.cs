@@ -81,13 +81,13 @@ var app = builder.Build();
 
 // --- 2. PIPELINE ---
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     // --- NOVA CONFIGURAÇÃO (NSwag) ---
     app.UseOpenApi();       // Gera o ficheiro swagger.json
     app.UseSwaggerUi();     // Gera a interface gráfica (acessa em /swagger)
     // ----------------------------------
-}
+//}
 
 app.UseHttpsRedirection();
 
