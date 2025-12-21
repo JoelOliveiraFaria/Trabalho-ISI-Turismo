@@ -5,15 +5,25 @@ namespace TravelAPI.Services
     public class RemoteCalendarService : ICalendarService
     {
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public RemoteCalendarService(HttpClient httpClient)
+        public RemoteCalendarService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         public async Task<List<string>> CheckConflictsAsync(DateTime start, DateTime end)
         {
-            var url = "https://localhost:7083/api/calendar/check";
+            var url = _configuration["CalendarServiceUrl"];
+
+            if(string.IsNullOrEmpty(url))
+            {
+                Console.WriteLine("CalendarServiceUrl não está configurado.");
+                return new List<string>();
+            }
+
+            var urlEndpoint = $"{url}/api/calendar/check";
 
             var payload = new
             {
