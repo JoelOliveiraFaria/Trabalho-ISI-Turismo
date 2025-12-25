@@ -17,7 +17,6 @@ namespace TravelAPI.Services
 
         public async Task<string> GetWeatherAsync(string city)
         {
-            // Lê o URL do appsettings.json
             var baseUrl = _configuration["WeatherServiceUrl"];
 
             if (string.IsNullOrEmpty(baseUrl)) return "Configuração de meteorologia em falta.";
