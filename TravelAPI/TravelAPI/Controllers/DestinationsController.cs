@@ -2,7 +2,7 @@
  * ===================================================================================
  * TRABALHO PRÁTICO: Integração de Sistemas de Informação (ISI)
  * -----------------------------------------------------------------------------------
- * Nome: Joel Oliveira Faria
+ * Nome: Joel Alexandre Oliveira Faria
  * Número: a28001
  * Curso: Engenharia de Sistemas Informáticos
  * Ano Letivo: 2025/2026

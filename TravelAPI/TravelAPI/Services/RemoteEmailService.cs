@@ -67,13 +67,11 @@ namespace TravelAPI.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Log de erro interno (apenas visível na consola do servidor)
                     Console.WriteLine($"Erro Email: {response.StatusCode}");
                 }
             }
             catch (Exception)
             {
-                // Falha silenciosa para não interromper o fluxo principal da aplicação
                 Console.WriteLine("Exceção ao enviar email.");
             }
         }
