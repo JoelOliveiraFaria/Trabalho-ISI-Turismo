@@ -1,8 +1,26 @@
+/*
+ * ===================================================================================
+ * TRABALHO PRÁTICO: Integração de Sistemas de Informação (ISI)
+ * -----------------------------------------------------------------------------------
+ * Nome: Joel Alexandre Oliveira Faria
+ * Número: a28001
+ * Curso: Engenharia de Sistemas Informáticos
+ * Ano Letivo: 2025/2026
+ * -----------------------------------------------------------------------------------
+ * Ficheiro: Register.js
+ * Descrição: Página de registo de novos utilizadores.
+ * Envia os dados (Username, Email, Password) para a API criar a conta.
+ * ===================================================================================
+ */
+
 import { useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api.jsx";
-import Navbar from "../pages/Navbar"; // <--- Importante: Importar a Navbar
+import Navbar from "../pages/Navbar"; 
 
+/**
+ * Componente responsável pelo registo de novos utilizadores.
+ */
 function Register() {
 
     const [username, setUsername] = useState('');
@@ -12,13 +30,19 @@ function Register() {
 
     const navigate = useNavigate();
 
+    /**
+     * Envia o pedido de registo para a API.
+     * Trata erros de validação (ex: username já existente) e redireciona para o login.
+     * @param {Event} e - Evento de submissão do formulário.
+     */
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
 
         try {
-            // Nota: Adicionei 'name: username' para garantir que o backend aceita 
-            // (caso a tabela Users obrigue a ter Nome)
+            // Envia os dados para o endpoint de registo
+            // Nota: Enviamos 'name' igual ao 'username' por simplificação, 
+            // caso o backend exija ambos os campos.
             await api.post('travel/user/register', {
                 name: username, 
                 username: username,
@@ -30,6 +54,7 @@ function Register() {
             navigate('/login'); 
 
         } catch (err) {
+            // Tratamento de erros detalhado vindo do backend
             if (err.response && err.response.data) {
                 const mensagemDoServidor = typeof err.response.data === 'string' 
                         ? err.response.data 

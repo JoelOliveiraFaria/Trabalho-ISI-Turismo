@@ -1,7 +1,29 @@
+/*
+ * ===================================================================================
+ * TRABALHO PRÁTICO: Integração de Sistemas de Informação (ISI)
+ * -----------------------------------------------------------------------------------
+ * Nome: Joel Alexandre Oliveira Faria
+ * Número: a28001
+ * Curso: Engenharia de Sistemas Informáticos
+ * Ano Letivo: 2025/2026
+ * -----------------------------------------------------------------------------------
+ * Ficheiro: Home.js
+ * Descrição: Página inicial (Landing Page) da aplicação.
+ * Apresenta as funcionalidades principais e redireciona para Login/Registo ou Dashboard.
+ * ===================================================================================
+ */
+
 import { Link } from "react-router-dom";
 
+/**
+ * Componente da Página Inicial.
+ * Verifica se o utilizador está autenticado para ajustar os botões de navegação (Call to Action).
+ * Estrutura: Navbar -> Hero Section -> Features -> Footer.
+ */
 function Home() {
-  const isLoggedIn = !!localStorage.getItem("token"); // Verifica se já tem login
+  // Verifica se existe um token no localStorage para determinar se o user está logado.
+  // O operador !! converte o resultado (string ou null) para booleano (true/false).
+  const isLoggedIn = !!localStorage.getItem("token"); 
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -40,6 +62,7 @@ function Home() {
             Evita conflitos na agenda com a nossa integração inteligente.
           </p>
           
+          {/* Botão de Ação Principal (Muda consoante o login) */}
           {isLoggedIn ? (
             <Link to="/trips" className="btn btn-lg btn-success px-5 shadow">
               Ir para o Dashboard 🚀
@@ -56,7 +79,7 @@ function Home() {
       <div className="container mb-5">
         <div className="row text-center">
           
-          {/* Card 1 */}
+          {/* Card 1: Calendário */}
           <div className="col-md-4 mb-4">
             <div className="card h-100 border-0 shadow-sm p-3">
               <div className="card-body">
@@ -69,7 +92,7 @@ function Home() {
             </div>
           </div>
 
-          {/* Card 2 */}
+          {/* Card 2: Meteorologia */}
           <div className="col-md-4 mb-4">
             <div className="card h-100 border-0 shadow-sm p-3">
               <div className="card-body">
@@ -82,7 +105,7 @@ function Home() {
             </div>
           </div>
 
-          {/* Card 3 */}
+          {/* Card 3: Custos */}
           <div className="col-md-4 mb-4">
             <div className="card h-100 border-0 shadow-sm p-3">
               <div className="card-body">
