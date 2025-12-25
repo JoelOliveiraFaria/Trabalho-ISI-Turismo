@@ -1,4 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*
+ * ===================================================================================
+ * TRABALHO PRÁTICO: Integração de Sistemas de Informação (ISI)
+ * -----------------------------------------------------------------------------------
+ * Nome: Joel Alexandre Oliveira Faria
+ * Número: a28001
+ * Curso: Engenharia de Sistemas Informáticos
+ * Ano Letivo: 2025/2026
+ * -----------------------------------------------------------------------------------
+ * Ficheiro: UsersController.cs
+ * Descrição: Controlador responsável pela autenticação e gestão de utilizadores.
+ * Inclui Registo (com Hashing de password) e Login (geração de JWT).
+ * ===================================================================================
+ */
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using TravelAPI.Data;
@@ -25,6 +40,11 @@ namespace TravelAPI.Controllers
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Método auxiliar privado para gerar o Token JWT.
+        /// </summary>
+        /// <param name="user">O utilizador para o qual o token será gerado.</param>
+        /// <returns>String contendo o Token JWT.</returns>
         private string CreateToken(User user)
         {
            List<Claim> claims = new List<Claim>
@@ -49,11 +69,17 @@ namespace TravelAPI.Controllers
             return jwt;
         }
 
-        //Registrar novo usuário
-        //POST: api/users/register
+        /// <summary>
+        /// Regista um novo utilizador na plataforma.
+        /// A password é guardada de forma segura usando Hashing.
+        /// </summary>
+        /// <param name="registerDTO">Dados de registo (Username, Email, Password).</param>
+        /// <returns>O utilizador criado (sem a password).</returns>
+        // POST: travel/user/register
         [HttpPost("register")]
         public async Task<ActionResult<UserDTO>> Register(UserRegisterDTO registerDTO)
         {
+            // Verifica se o email já existe
             if (await _context.Users.AnyAsync(u => u.Email == registerDTO.Email))
             {
                 return BadRequest();
@@ -65,8 +91,8 @@ namespace TravelAPI.Controllers
                 Email = registerDTO.Email
             };
 
+            // Encriptação da password
             var passwordHasher = new PasswordHasher<User>();
-
             user.PasswordHash = passwordHasher.HashPassword(user, registerDTO.Password);
 
             _context.Users.Add(user);
@@ -80,6 +106,12 @@ namespace TravelAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Autentica um utilizador e retorna um Token JWT.
+        /// </summary>
+        /// <param name="loginDTO">Credenciais de login (Username, Password).</param>
+        /// <returns>Token de acesso (String).</returns>
+        // POST: travel/user/login
         [HttpPost("login")]
         public async Task<ActionResult<UserDTO>> Login(UserLoginDTO loginDTO)
         {
@@ -100,25 +132,12 @@ namespace TravelAPI.Controllers
             return Ok(token);
         }
 
-        //// 3. OBTER TODOS (Apenas para teste/Admin)
-        //// GET: api/users
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
-        //{
-        //    var users = await _context.Users
-        //        .Select(u => new UserDTO
-        //        {
-        //            Id = u.Id,
-        //            Username = u.Username,
-        //            Email = u.Email
-        //        })
-        //        .ToListAsync();
-
-        //    return Ok(users);
-        //}
-
-
-        //Obter usuário por ID
+        /// <summary>
+        /// Obtém os detalhes públicos de um utilizador pelo ID.
+        /// </summary>
+        /// <param name="id">ID do utilizador.</param>
+        /// <returns>UserDTO com os dados do utilizador.</returns>
+        // GET: travel/user/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {

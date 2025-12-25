@@ -1,4 +1,19 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿/*
+ * ===================================================================================
+ * TRABALHO PRÁTICO: Integração de Sistemas de Informação (ISI)
+ * -----------------------------------------------------------------------------------
+ * Nome: Joel Alexandre Oliveira Faria
+ * Número: a28001
+ * Curso: Engenharia de Sistemas Informáticos
+ * Ano Letivo: 2025/2026
+ * -----------------------------------------------------------------------------------
+ * Ficheiro: TripsController.cs
+ * Descrição: Controlador responsável pela gestão (CRUD) das viagens, incluindo
+ * integração com serviços externos (Meteorologia, Calendário, Seguro, Email).
+ * ===================================================================================
+ */
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -20,7 +35,6 @@ namespace TravelAPI.Controllers
         private readonly ICalendarService _calendarService;
         private readonly IEmailService _emailService; 
 
-        // Atualizar construtor para receber o EmailService
         public TripsController(
             TravelPlannerContext context,
             IWeatherService weatherService,
@@ -35,6 +49,10 @@ namespace TravelAPI.Controllers
             _emailService = emailService;
         }
 
+        /// <summary>
+        /// Obtém todas as viagens associadas ao utilizador autenticado.
+        /// </summary>
+        /// <returns>Lista de viagens (TripDto).</returns>
         // 1. OBTER TODAS AS VIAGENS
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TripDto>>> GetTrips()
@@ -69,6 +87,12 @@ namespace TravelAPI.Controllers
             return Ok(trips);
         }
 
+        /// <summary>
+        /// Obtém os detalhes de uma viagem específica.
+        /// Verifica se a viagem pertence ao utilizador autenticado.
+        /// </summary>
+        /// <param name="id">ID da viagem.</param>
+        /// <returns>Detalhes da viagem ou NotFound.</returns>
         // 2. OBTER UMA VIAGEM POR ID
         [HttpGet("{id}")]
         public async Task<ActionResult<TripDto>> GetTrip(int id)
@@ -81,7 +105,7 @@ namespace TravelAPI.Controllers
                 .Include(t => t.Destination)
                 .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
-            if (trip == null) return NotFound("Viagem não encontrada ou sem permissão de acesso.");
+            if (trip == null) return NotFound();
 
             var tripDto = new TripDto
             {
@@ -104,35 +128,40 @@ namespace TravelAPI.Controllers
             return Ok(tripDto);
         }
 
-        // 3. CRIAR VIAGEM (COM EMAIL E VERIFICAÇÕES)
+        /// <summary>
+        /// Cria uma nova viagem.
+        /// Executa integrações com serviços externos: Meteorologia, Seguro e Calendário.
+        /// Envia alerta por email se houver conflitos de agenda.
+        /// </summary>
+        /// <param name="createDto">Dados da nova viagem.</param>
+        /// <returns>A viagem criada ou mensagem de aviso de conflitos.</returns>
+        // 3. CRIAR VIAGEM
         [HttpPost]
         public async Task<IActionResult> PostTrip(CreateTripDto createDto)
         {
             // Validação de Data
             if (createDto.EndDate < createDto.StartDate)
             {
-                return BadRequest("A data de fim deve ser posterior à data de início.");
+                return BadRequest();
             }
 
             // Validar se o destino existe
             var destination = await _context.Destinations.FindAsync(createDto.DestinationId);
             if (destination == null)
             {
-                return BadRequest("O Destino indicado não existe.");
+                return BadRequest();
             }
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Unauthorized();
             int userId = int.Parse(userIdClaim.Value);
 
-            // 2. BUSCAR O UTILIZADOR COMPLETO (Precisamos do Email dele!)
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
-                return BadRequest("Utilizador não encontrado.");
+                return BadRequest();
             }
 
-            // Serviços externos
             var conflicts = await _calendarService.CheckConflictsAsync(createDto.StartDate, createDto.EndDate);
             string forecast = await _weatherService.GetWeatherAsync(destination.City!);
             decimal insurance = await _insuranceService.CalculateInsuranceAsync(createDto.Budget);
@@ -193,7 +222,41 @@ namespace TravelAPI.Controllers
             return CreatedAtAction(nameof(GetTrip), new { id = trip.Id }, tripResponse);
         }
 
-        // 4. APAGAR VIAGEM
+        /// <summary>
+        /// Atualiza uma viagem existente.
+        /// Recalcula automaticamente o valor do seguro com base no novo orçamento.
+        /// </summary>
+        /// <param name="id">ID da viagem.</param>
+        /// <param name="tripDto">Novos dados da viagem.</param>
+        /// <returns>NoContent em caso de sucesso.</returns>
+        // 4. ATUALIZAR VIAGEM
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutTrip(int id, CreateTripDto tripDto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
+
+            var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            if (trip == null) return NotFound();
+
+            trip.StartDate = tripDto.StartDate;
+            trip.EndDate = tripDto.EndDate;
+            trip.Budget = tripDto.Budget;
+            trip.Notes = tripDto.Notes;
+            trip.InsuranceCost = await _insuranceService.CalculateInsuranceAsync(trip.Budget);
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Remove uma viagem do sistema.
+        /// </summary>
+        /// <param name="id">ID da viagem a remover.</param>
+        /// <returns>NoContent em caso de sucesso.</returns>
+        // 5. APAGAR VIAGEM
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrip(int id)
         {
@@ -204,7 +267,7 @@ namespace TravelAPI.Controllers
             var trip = await _context.Trips
                 .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
-            if (trip == null) return NotFound("Viagem não encontrada ou sem permissão.");
+            if (trip == null) return NotFound();
 
             _context.Trips.Remove(trip);
             await _context.SaveChangesAsync();

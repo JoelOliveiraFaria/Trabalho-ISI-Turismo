@@ -4,12 +4,12 @@ using System.Text.Json.Nodes;
 
 namespace TravelAPI.Services
 {
-    public class RemoteWeatherService : IWeatherService
+    public class OpenWeatherService : IWeatherService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public RemoteWeatherService(HttpClient httpClient, IConfiguration configuration)
+        public OpenWeatherService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _configuration = configuration;

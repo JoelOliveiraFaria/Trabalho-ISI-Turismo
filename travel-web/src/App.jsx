@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import CreateTrip from "./pages/CreateTrip";
 import Trips from "./pages/Trips";
 import Home from "./pages/Home";
+import EditTrip from "./pages/EditTrip";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -34,7 +35,13 @@ function App() {
           <PrivateRoute> 
             <CreateTrip />
           </PrivateRoute>
-          } 
+          }
+        />
+          <Route path="/edit-trip/:id" element={   
+          <PrivateRoute> 
+            <EditTrip />
+          </PrivateRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

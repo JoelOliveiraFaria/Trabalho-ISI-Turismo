@@ -28,14 +28,16 @@ function Trips() {
       } catch (e) { alert("Erro ao apagar"); }
   };
 
+  const handleEdit = (id) => {
+    navigate(`/edit-trip/${id}`);
+  }
+
   useEffect(() => { loadTrips(); }, []);
 
 
   return (
     <div className="min-vh-100 bg-light">
       <Navbar />
-
-      {/* 1. HERO HEADER (Cabeçalho Azul) */}
       <div className="bg-primary text-white py-5 mb-5">
         <div className="container">
           <div className="row align-items-center">
@@ -65,11 +67,11 @@ function Trips() {
         ) : (
             <div className="row">
             {trips.map((trip) => (
-                <div key={trip.id} className="col-md-4 mb-4">
+                <div key={trip.id} className="col-md-4 mb-4" >
                 <div className="card h-100 border-0 shadow-sm hover-shadow" style={{transition: "0.3s"}}>
                     {/* Imagem genérica ou cor no topo do card */}
                     <div className="card-header bg-white border-0 pt-4 pb-0">
-                        <h4 className="fw-bold text-primary mb-0">{trip.destination.city}</h4>
+                        <h4 className="fw-bold text-primary mb-0" onClick={() => handleEdit(trip.id)} style={{cursor: "pointer"}}>{trip.destination.city}</h4>
                         <small className="text-muted">{trip.destination.country}</small>
                     </div>
                     
