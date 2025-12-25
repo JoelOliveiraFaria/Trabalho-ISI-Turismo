@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 namespace WeatherService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/weather")]
     public class WeatherController : ControllerBase
     {
         private readonly HttpClient _httpClient;
