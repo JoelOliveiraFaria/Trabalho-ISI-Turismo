@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TravelAPI.Data;
+using TravelAPI.Interfaces;
+using TravelAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddHttpClient<TravelAPI.Interfaces.IWeatherService, TravelAPI.Services.OpenWeatherService>();
+builder.Services.AddHttpClient<IWeatherService, OpenWeatherService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5002/");
+});
 builder.Services.AddScoped<TravelAPI.Interfaces.IInsuranceService, TravelAPI.Services.SoapInsuranceService>();
 
 builder.Services.AddHttpClient<TravelAPI.Interfaces.ICalendarService, TravelAPI.Services.RemoteCalendarService>(client =>
